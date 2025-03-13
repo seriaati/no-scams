@@ -1,7 +1,7 @@
 {
     "apps": [
         {
-            "name": "no-scam",
+            "name": "no-scams",
             "script": "./run.py",
             "interpreter": "./.venv/bin/python",
             "interpreter_args": "-OO"
