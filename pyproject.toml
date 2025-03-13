@@ -1,0 +1,22 @@
+[project]
+name = "no-scams"
+version = "0.1.0"
+description = "Discord bot to combat scam messages"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "discord-py[speed]>=2.5.2",
+    "python-dotenv>=1.0.1",
+]
+license = { file = "LICENSE" }
+authors = [{ name = "seriaati", email = "seria.ati@gmail.com" }]
+
+[tool.pyright]
+enableTypeIgnoreComments = false
+reportIncompatibleMethodOverride = false
+reportIncompatibleVariableOverride = false
+reportUnnecessaryComparison = true
+reportUnnecessaryContains = true
+reportUnnecessaryIsInstance = true
+reportUnnecessaryTypeIgnoreComment = true
+typeCheckingMode = "standard"
