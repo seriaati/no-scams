@@ -15,3 +15,15 @@ If a user sends 3 messages consecutively all in different channels AND all conta
 1. Enable **Message Content Intent**
 1. Run the application with your bot token as the `TOKEN` environment variable
 1. Invite your bot with the invite link in the logs
+
+### Local
+
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
+1. Clone the repository
+1. Create a `.env` file:
+
+   ```env
+   TOKEN=YourDiscordBotToken.Example.SomeExampleBase64Junk
+   ```
+
+1. `uv run run.py`
