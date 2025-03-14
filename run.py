@@ -13,7 +13,17 @@ from dotenv import load_dotenv
 MAX_MESSAGE_NUM = 3
 TIMEOUT_MINUTES = 15
 
-logger = logging.getLogger("discord")
+logger = logging.getLogger("discord.bot")
+
+intents = discord.Intents.default()
+intents.message_content = True
+permissions = discord.Permissions(
+    moderate_members=True,
+    manage_messages=True,
+    read_message_history=True,
+    send_messages=True,
+)
+allowed_mentions = discord.AllowedMentions(everyone=False, roles=False, users=True)
 
 
 @dataclass(kw_only=True)
@@ -84,10 +94,9 @@ class MessageStore:
 
 class NoScamBot(commands.Bot):
     def __init__(self) -> None:
-        intents = discord.Intents.default()
-        intents.message_content = True
         super().__init__(commands.when_mentioned, intents=intents)
         self.store = MessageStore()
+        self.user: discord.ClientUser
 
     async def delete_message(
         self, message: Message | discord.Message | discord.PartialMessage
@@ -109,6 +118,11 @@ class NoScamBot(commands.Bot):
         with contextlib.suppress(discord.NotFound, discord.Forbidden):
             logger.info(f"Deleting message {message.id} in {message.guild!r}")
             await message.delete()
+
+    async def on_ready(self) -> None:
+        logger.info(
+            f"Invite: {discord.utils.oauth_url(self.user.id, permissions=permissions)}"
+        )
 
 
 bot = NoScamBot()
