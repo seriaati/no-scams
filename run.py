@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 
 MAX_MESSAGE_NUM = 3
 TIMEOUT_MINUTES = 15
+SPECIAL_GUILD_CHANNELS = {875392637299990628: 973232047193751582}
 
 logger = logging.getLogger("discord.bot")
 
@@ -156,9 +157,19 @@ async def on_message(message: discord.Message) -> None:
                 pass
             else:
                 logger.info(f"Timed out {message.author!r}")
-                await message.channel.send(
-                    f"Timed out {message.author.mention} for {TIMEOUT_MINUTES} minutes for sending scam messages"
-                )
+                timeout_msg = f"Timed out {message.author.mention} for {TIMEOUT_MINUTES} minutes for sending scam messages"
+
+                if channel_id := SPECIAL_GUILD_CHANNELS.get(message.guild.id):
+                    special_channel = message.guild.get_channel(
+                        channel_id
+                    ) or await message.guild.fetch_channel(channel_id)
+                    if isinstance(
+                        special_channel,
+                        (discord.TextChannel, discord.Thread, discord.VoiceChannel),
+                    ):
+                        await special_channel.send(timeout_msg)
+                else:
+                    await message.channel.send(timeout_msg)
 
         store.clear_messages(message.guild.id, message.author.id)
 
