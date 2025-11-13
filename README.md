@@ -6,7 +6,11 @@ Based on [this Gist](https://gist.github.com/seriaati/b38e65b8ca9257f1bec547bbd8
 
 ## Logic
 
-If a user sends 3 messages consecutively all in different channels AND all containing a link AND all having the same content, the bot will delete the messages and timeout the user for 15 minutes.
+1. The user sends 3 messages consecutively.
+2. All messages are in different channels.
+3. (All messages contain link(s) AND all messages have the same content) OR (all messages have the same image attachments).
+
+If all of the above conditions are met, the bot deletes the messages and timeouts the user for 15 minutes.
 
 ## Self Hosting
 
