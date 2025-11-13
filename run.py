@@ -1,17 +1,19 @@
-from collections import defaultdict
+from __future__ import annotations
+
 import contextlib
-from dataclasses import dataclass
 import datetime
-import io
 import logging
 import os
-import re
-from typing import Any, Self
-from discord.ext import commands
+from collections import defaultdict
+from dataclasses import dataclass
+from typing import Self
+
 import discord
-from dotenv import load_dotenv
-from PIL import Image
 import imagehash
+from discord.ext import commands
+from dotenv import load_dotenv
+
+from no_scams.utils import all_different, all_same, contains_url, extract_image_hash
 
 MAX_MESSAGE_NUM = 3
 TIMEOUT_MINUTES = 15
@@ -23,22 +25,9 @@ logger = logging.getLogger("discord.bot")
 intents = discord.Intents.default()
 intents.message_content = True
 permissions = discord.Permissions(
-    moderate_members=True,
-    manage_messages=True,
-    read_message_history=True,
-    send_messages=True,
+    moderate_members=True, manage_messages=True, read_message_history=True, send_messages=True
 )
 allowed_mentions = discord.AllowedMentions(everyone=False, roles=False, users=True)
-
-
-def get_image_hash(fp: io.BytesIO) -> imagehash.ImageHash:
-    return imagehash.average_hash(Image.open(fp))
-
-
-def images_identical(path1, path2):
-    hash1 = get_image_hash(path1)
-    hash2 = get_image_hash(path2)
-    return hash1 == hash2
 
 
 @dataclass(kw_only=True)
@@ -47,14 +36,6 @@ class Message:
     channel_id: int
     content: str
     image_hashes: frozenset[imagehash.ImageHash]
-
-    @staticmethod
-    async def extract_image_hash(image_hashes, attachment):
-        buffer = io.BytesIO()
-        image_data = await attachment.read()
-        buffer.write(image_data)
-        buffer.seek(0)
-        image_hashes.append(get_image_hash(buffer))
 
     @classmethod
     async def from_discord_message(cls, message: discord.Message) -> Self:
@@ -70,7 +51,7 @@ class Message:
             if not any(filename.endswith(ext) for ext in IMAGE_EXTENSIONS):
                 continue
 
-            await cls.extract_image_hash(image_hashes, attachment)
+            await extract_image_hash(image_hashes, attachment)
 
         return cls(
             id=message.id,
@@ -84,24 +65,6 @@ class MessageStore:
     def __init__(self) -> None:
         self._messages: defaultdict[tuple[int, int], list[Message]] = defaultdict(list)
         """(guild ID, author ID) -> list of messages"""
-
-    @staticmethod
-    def contains_url(content: str) -> bool:
-        return re.search(r"https?://\S+", content) is not None
-
-    @staticmethod
-    def all_same(lst: list[Any]) -> bool:
-        if not lst or len(lst) == 1:
-            return False
-        if not lst[0]:
-            return False
-        return all(x == lst[0] for x in lst)
-
-    @staticmethod
-    def all_different(lst: list[Any]) -> bool:
-        if not lst or len(lst) == 1:
-            return True
-        return len(set(lst)) == len(lst)
 
     async def add_message(self, message: discord.Message) -> None:
         if message.guild is None:
@@ -129,19 +92,17 @@ class MessageStore:
         if len(messages) < MAX_MESSAGE_NUM:
             return False
 
-        same_content = self.all_same([msg.content for msg in messages])
-        different_channels = self.all_different([msg.channel_id for msg in messages])
-        all_contain_url = all(self.contains_url(msg.content) for msg in messages)
-        same_images = self.all_same([msg.image_hashes for msg in messages])
+        same_content = all_same([msg.content for msg in messages])
+        different_channels = all_different([msg.channel_id for msg in messages])
+        all_contain_url = all(contains_url(msg.content) for msg in messages)
+        same_images = all_same([msg.image_hashes for msg in messages])
 
         if os.getenv("DEBUG"):
             logger.info(
-                f"{same_content=}, {different_channels=}, {all_contain_url=}, {same_images=}"
+                "%s, %s, %s, %s", same_content, different_channels, all_contain_url, same_images
             )
 
-        return different_channels and (
-            (all_contain_url and same_content) or (same_images)
-        )
+        return different_channels and ((all_contain_url and same_content) or (same_images))
 
 
 class NoScamBot(commands.Bot):
@@ -158,23 +119,18 @@ class NoScamBot(commands.Bot):
                 message.channel_id
             )
             if isinstance(
-                channel,
-                discord.ForumChannel
-                | discord.CategoryChannel
-                | discord.abc.PrivateChannel,
+                channel, discord.ForumChannel | discord.CategoryChannel | discord.abc.PrivateChannel
             ):
                 return
 
             message = channel.get_partial_message(message.id)
 
         with contextlib.suppress(discord.NotFound, discord.Forbidden):
-            logger.info(f"Deleting message {message.id} in {message.guild!r}")
+            logger.info("Deleting message %s in %r", message.id, message.guild)
             await message.delete()
 
     async def on_ready(self) -> None:
-        logger.info(
-            f"Invite: {discord.utils.oauth_url(self.user.id, permissions=permissions)}"
-        )
+        logger.info("Invite: %s", discord.utils.oauth_url(self.user.id, permissions=permissions))
 
 
 bot = NoScamBot()
@@ -198,16 +154,14 @@ async def on_message(message: discord.Message) -> None:
         # Timeout the user
         if isinstance(message.author, discord.Member):
             try:
-                logger.info(f"Timing out {message.author!r}")
+                logger.info("Timing out %r", message.author)
                 await message.author.timeout(
-                    datetime.timedelta(minutes=TIMEOUT_MINUTES),
-                    reason="Sending scam messages",
+                    datetime.timedelta(minutes=TIMEOUT_MINUTES), reason="Sending scam messages"
                 )
             except (discord.NotFound, discord.Forbidden):
-                logger.info(f"Failed to timeout {message.author!r}")
-                pass
+                logger.info("Failed to timeout %r", message.author)
             else:
-                logger.info(f"Timed out {message.author!r}")
+                logger.info("Timed out %r", message.author)
                 timeout_msg = f"Timed out {message.author.mention} for {TIMEOUT_MINUTES} minutes for sending scam messages"
 
                 if channel_id := SPECIAL_GUILD_CHANNELS.get(message.guild.id):
@@ -215,8 +169,7 @@ async def on_message(message: discord.Message) -> None:
                         channel_id
                     ) or await message.guild.fetch_channel(channel_id)
                     if isinstance(
-                        special_channel,
-                        (discord.TextChannel, discord.Thread, discord.VoiceChannel),
+                        special_channel, (discord.TextChannel, discord.Thread, discord.VoiceChannel)
                     ):
                         await special_channel.send(timeout_msg)
                 else:
