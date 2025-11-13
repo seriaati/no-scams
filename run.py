@@ -32,6 +32,7 @@ class Message:
     id: int
     channel_id: int
     content: str
+    attachments: list[discord.Attachment]
 
 
 class MessageStore:
@@ -64,6 +65,7 @@ class MessageStore:
                 id=message.id,
                 channel_id=message.channel.id,
                 content=message.content,
+                attachments=message.attachments,
             )
         )
         self.remove_message(message.guild.id, message.author.id)
@@ -85,11 +87,18 @@ class MessageStore:
         if len(messages) < MAX_MESSAGE_NUM:
             return False
 
-        # All messages have the same content, all in different channels, and all contain URLs
         return (
+            # All messages have the same content
             self.all_same([message.content for message in messages])
+            # All messages are in different channels
             and self.all_different([message.channel_id for message in messages])
-            and all(self.contains_url(message.content) for message in messages)
+            and (
+                # All messages contain a URL or all messages have the same attachment filenames
+                all(self.contains_url(message.content) for message in messages)
+                or self.all_same(
+                    [{a.filename for a in message.attachments} for message in messages]
+                )
+            )
         )
 
 
