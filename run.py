@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import datetime
 import logging
@@ -13,6 +14,7 @@ import imagehash
 from discord.ext import commands
 from dotenv import load_dotenv
 
+from no_scams.health import HealthCheckServer
 from no_scams.utils import all_different, all_same, contains_url, extract_image_hash
 
 MAX_MESSAGE_NUM = 3
@@ -178,5 +180,13 @@ async def on_message(message: discord.Message) -> None:
         store.clear_messages(message.guild.id, message.author.id)
 
 
-load_dotenv()
-bot.run(os.environ["TOKEN"])
+async def main() -> None:
+    load_dotenv()
+    discord.utils.setup_logging(level=logging.INFO)
+    async with bot, HealthCheckServer(bot):
+        await bot.start(os.environ["TOKEN"])
+
+
+if __name__ == "__main__":
+    with contextlib.suppress(KeyboardInterrupt, asyncio.CancelledError):
+        asyncio.run(main())
