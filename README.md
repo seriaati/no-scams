@@ -20,6 +20,30 @@ If all of the above conditions are met, the bot deletes the messages and timeout
 1. Run the application with your bot token as the `TOKEN` environment variable
 1. Invite your bot with the invite link in the logs
 
+### Docker (Recommended)
+
+Using the pre-built image from GitHub Container Registry:
+
+```bash
+docker run -d \
+  --name no-scams-bot \
+  --restart unless-stopped \
+  -e TOKEN=YourDiscordBotToken.Example.SomeExampleBase64Junk \
+  ghcr.io/seriaati/no-scams:latest
+```
+
+Or using Docker Compose:
+
+```yaml
+services:
+  bot:
+    image: ghcr.io/seriaati/no-scams:latest
+    container_name: no-scams-bot
+    restart: unless-stopped
+    environment:
+      TOKEN: YourDiscordBotToken.Example.SomeExampleBase64Junk
+```
+
 ### Local
 
 1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
