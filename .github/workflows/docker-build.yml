@@ -72,19 +72,3 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
-
-      - name: Trigger deployment webhook
-        if: github.event_name != 'pull_request'
-        env:
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-          COMMIT_SHA: ${{ github.sha }}
-          PACKAGE_URL: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-        run: |
-          set -euo pipefail
-          jq -n --arg id "$COMMIT_SHA" --arg msg "$COMMIT_MESSAGE" --arg url "$PACKAGE_URL" '{head_commit: {id: $id, message: $msg}, registry_package: {package_version: {package_url: $url}}}' > payload.json
-          curl -sS --fail-with-body --retry 3 --retry-delay 2 --retry-connrefused \
-            -X POST "${{ secrets.DEPLOYMENT_WEBHOOK_URL }}" \
-            -H "x-github-event: registry_package" \
-            -H "Content-Type: application/json" \
-            --data-binary @payload.json \
-            -w "\nHTTP %{http_code}\n"
