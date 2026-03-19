@@ -19,7 +19,10 @@ from no_scams.utils import all_different, all_same, contains_url, extract_image_
 
 MAX_MESSAGE_NUM = 3
 TIMEOUT_MINUTES = 15
-SPECIAL_GUILD_CHANNELS = {875392637299990628: 973232047193751582}
+SPECIAL_GUILD_CHANNELS = {
+    875392637299990628: 973232047193751582,
+    840335525621268520: 965770485751230534,
+}
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp"}
 
 logger = logging.getLogger("discord.bot")
