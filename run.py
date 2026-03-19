@@ -19,6 +19,7 @@ from no_scams.utils import all_different, all_same, contains_url, extract_image_
 
 MAX_MESSAGE_NUM = 3
 TIMEOUT_MINUTES = 15
+CONSECUTIVE_WINDOW_MINUTES = 2
 SPECIAL_GUILD_CHANNELS = {
     875392637299990628: 973232047193751582,
     840335525621268520: 965770485751230534,
@@ -41,6 +42,7 @@ class Message:
     channel_id: int
     content: str
     image_hashes: frozenset[imagehash.ImageHash]
+    created_at: datetime.datetime
 
     @classmethod
     async def from_discord_message(cls, message: discord.Message) -> Self:
@@ -63,6 +65,7 @@ class Message:
             channel_id=message.channel.id,
             content=message.content,
             image_hashes=frozenset(image_hashes),
+            created_at=message.created_at,
         )
 
 
@@ -101,13 +104,24 @@ class MessageStore:
         different_channels = all_different([msg.channel_id for msg in messages])
         all_contain_url = all(contains_url(msg.content) for msg in messages)
         same_images = all_same([msg.image_hashes for msg in messages])
+        all_have_images = all(msg.image_hashes for msg in messages)
+        all_no_text_content = all(not msg.content.strip() for msg in messages)
+        message_time_window = max(msg.created_at for msg in messages) - min(
+            msg.created_at for msg in messages
+        )
+        within_consecutive_window = message_time_window <= datetime.timedelta(
+            minutes=CONSECUTIVE_WINDOW_MINUTES
+        )
 
-        if os.getenv("DEBUG"):
-            logger.info(
-                "%s, %s, %s, %s", same_content, different_channels, all_contain_url, same_images
+        return (
+            different_channels
+            and within_consecutive_window
+            and (
+                (all_contain_url and same_content)
+                or same_images
+                or (all_have_images and all_no_text_content)
             )
-
-        return different_channels and ((all_contain_url and same_content) or (same_images))
+        )
 
 
 class NoScamBot(commands.Bot):
