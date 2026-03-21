@@ -1,4 +1,5 @@
 import datetime
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Self
@@ -8,6 +9,8 @@ import imagehash
 
 from no_scams.constants import CONSECUTIVE_WINDOW_MINUTES, IMAGE_EXTENSIONS, MAX_MESSAGE_NUM
 from no_scams.utils import all_different, all_same, contains_url, extract_image_hash
+
+logger = logging.getLogger("discord.bot.message_store")
 
 
 @dataclass(kw_only=True)
@@ -85,6 +88,26 @@ class MessageStore:
         )
         within_consecutive_window = message_time_window <= datetime.timedelta(
             minutes=CONSECUTIVE_WINDOW_MINUTES
+        )
+
+        logger.info(
+            "Checking if messages are scam:\n"
+            "Messages: %s\n"
+            "Same content: %s\n"
+            "Different channels: %s\n"
+            "All contain URL: %s\n"
+            "Same images: %s\n"
+            "All have images: %s\n"
+            "All no text content: %s\n"
+            "Within consecutive window: %s",
+            messages,
+            same_content,
+            different_channels,
+            all_contain_url,
+            same_images,
+            all_have_images,
+            all_no_text_content,
+            within_consecutive_window,
         )
 
         return (
