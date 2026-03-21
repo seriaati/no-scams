@@ -78,8 +78,10 @@ async def on_message(message: discord.Message) -> None:
                 await message.author.timeout(
                     datetime.timedelta(minutes=TIMEOUT_MINUTES), reason="Sending scam messages"
                 )
-            except (discord.NotFound, discord.Forbidden):
-                logger.info("Failed to timeout %r", message.author)
+            except (discord.NotFound, discord.Forbidden) as e:
+                logger.warning("Failed to timeout %r: %s", message.author, e)
+            except Exception:
+                logger.exception("Unexpected error timing out %r", message.author)
             else:
                 logger.info("Timed out %r", message.author)
                 timeout_msg = f"Timed out {message.author.mention} for {TIMEOUT_MINUTES} minutes for sending scam messages"
