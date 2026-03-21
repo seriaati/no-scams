@@ -1,10 +1,8 @@
 import logging
-from typing import TYPE_CHECKING, Self
+from typing import Self
 
+import discord
 from aiohttp import web
-
-if TYPE_CHECKING:
-    import discord
 
 logger = logging.getLogger("discord.bot.health")
 
