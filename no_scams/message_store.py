@@ -21,6 +21,12 @@ class Message:
     image_hashes: frozenset[imagehash.ImageHash]
     created_at: datetime.datetime
 
+    def __str__(self) -> str:
+        return f"Message(id={self.id}, channel_id={self.channel_id}, image_hashes={self.image_hashes}, created_at={self.created_at})"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
     @classmethod
     async def from_discord_message(cls, message: discord.Message) -> Self:
         image_hashes = []
