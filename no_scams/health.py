@@ -28,7 +28,7 @@ class HealthCheckServer:
 
     async def start(self, *, port: int = 8080) -> None:
         self.app.add_routes([web.get("/health", self.health)])
-        self.runner = web.AppRunner(self.app)
+        self.runner = web.AppRunner(self.app, access_log=None)
         await self.runner.setup()
         self.site = web.TCPSite(self.runner, "127.0.0.1", port)
         await self.site.start()
