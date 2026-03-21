@@ -148,6 +148,9 @@ class NoScamBot(commands.Bot):
             logger.info("Deleting message %s in %r", message.id, message.guild)
             await message.delete()
 
+    async def setup_hook(self) -> None:
+        await self.load_extension("jishaku")
+
     async def on_ready(self) -> None:
         logger.info("Invite: %s", discord.utils.oauth_url(self.user.id, permissions=permissions))
 
