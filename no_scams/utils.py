@@ -12,7 +12,7 @@ def get_image_hash(fp: io.BytesIO) -> imagehash.ImageHash:
 
 
 def contains_url(content: str) -> bool:
-    return re.search(r"https?://\S+", content) is not None
+    return re.search(r"https?://\S+|discord\.gg", content) is not None
 
 
 def all_same(lst: list[Any]) -> bool:
