@@ -96,7 +96,7 @@ class MessageStore:
             minutes=CONSECUTIVE_WINDOW_MINUTES
         )
 
-        logger.info(
+        logger.debug(
             "Checking if messages are scam:\n"
             "Messages: %s\n"
             "Same content: %s\n"
