@@ -84,7 +84,7 @@ async def on_message(message: discord.Message) -> None:
                 logger.exception("Unexpected error timing out %r", message.author)
             else:
                 logger.info("Timed out %r", message.author)
-                timeout_msg = f"Timed out {message.author.mention} for {TIMEOUT_MINUTES} minutes for sending scam messages"
+                timeout_msg = f"Timed out {message.author.mention} for {TIMEOUT_MINUTES} minutes for sending scam messages\n"
 
                 if channel_id := SPECIAL_GUILD_CHANNELS.get(message.guild.id):
                     special_channel = message.guild.get_channel(
@@ -93,7 +93,10 @@ async def on_message(message: discord.Message) -> None:
                     if isinstance(
                         special_channel, (discord.TextChannel, discord.Thread, discord.VoiceChannel)
                     ):
-                        await special_channel.send(timeout_msg)
+                        await special_channel.send(
+                            timeout_msg
+                            + f"\nThe message that triggered the timeout was:\n{message.content}"
+                        )
                 else:
                     await message.channel.send(timeout_msg)
 
