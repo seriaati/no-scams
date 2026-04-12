@@ -6,13 +6,17 @@ import discord
 import imagehash
 from PIL import Image
 
+from no_scams.constants import DISCORD_INVITE
+
 
 def get_image_hash(fp: io.BytesIO) -> imagehash.ImageHash:
     return imagehash.average_hash(Image.open(fp))
 
 
 def contains_url(content: str) -> bool:
-    return re.search(r"https?://\S+|discord\.gg", content) is not None
+    contains_discord_invite = re.search(DISCORD_INVITE, content) is not None
+    contains_url = re.search(r"https?://\S+", content) is not None
+    return contains_discord_invite or contains_url
 
 
 def all_same(lst: list[Any]) -> bool:

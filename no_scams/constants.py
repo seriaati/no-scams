@@ -6,3 +6,6 @@ SPECIAL_GUILD_CHANNELS = {
     840335525621268520: 965770485751230534,
 }
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp"}
+DISCORD_INVITE = (
+    r"(?:https?://)?(?:www\.)?discord(?:\.com|app\.com|\.gg)/(?:invite/)?([a-zA-Z0-9\-]{2,32})"
+)
