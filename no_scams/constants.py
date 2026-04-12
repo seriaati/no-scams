@@ -8,4 +8,5 @@ SPECIAL_GUILD_CHANNELS = {
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp"}
 DISCORD_INVITE = (
     r"(?:https?://)?(?:www\.)?discord(?:\.com|app\.com|\.gg)/(?:invite/)?([a-zA-Z0-9\-]{2,32})"
+    r"|(?:https?://)?(?:www\.)?discord\.com/events/\d+/\d+"
 )
