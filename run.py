@@ -42,9 +42,11 @@ class NoScamBot(commands.Bot):
 
             message = channel.get_partial_message(message.id)
 
-        with contextlib.suppress(discord.NotFound, discord.Forbidden):
+        try:
             logger.info("Deleting message %s in %r", message.id, message.guild)
             await message.delete()
+        except (discord.NotFound, discord.Forbidden) as e:
+            logger.warning("Failed to delete message %s in %r: %s", message.id, message.guild, e)
 
     async def setup_hook(self) -> None:
         await self.load_extension("jishaku")
@@ -66,6 +68,10 @@ async def on_message(message: discord.Message) -> None:
     await store.add_message(message)
 
     if store.is_scam(message):
+        logger.info(
+            "Scam detected from %r in %r: %r", message.author, message.guild, message.content
+        )
+
         # Delete the scam messages
         scam_messages = store.get_scam_messages(message)
         for scam_message in scam_messages:
