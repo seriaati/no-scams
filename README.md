@@ -11,7 +11,7 @@ Based on [this Gist](https://gist.github.com/seriaati/b38e65b8ca9257f1bec547bbd8
 3. The 3 messages are sent within 2 minutes.
 4. At least one of these is true:
 
-- All messages contain link(s) **and** all messages have the same content.
+- All messages have the same content.
 - All messages have the same image attachment hash(es).
 - All messages have image attachments and no text content.
 

@@ -119,9 +119,5 @@ class MessageStore:
         return (
             different_channels
             and within_consecutive_window
-            and (
-                (all_contain_url and same_content)
-                or same_images
-                or (all_have_images and all_no_text_content)
-            )
+            and (same_content or same_images or (all_have_images and all_no_text_content))
         )
